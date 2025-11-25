@@ -6,6 +6,17 @@ This n8n workflow automatically pulls the latest videos from your favorite YouTu
 
 ***
 
+## Prerequisites
+
+- n8n instance (cloud-hosted or self-hosted).
+- Docker (if self-hosting)
+- ngrok extension installed on Docker (Telegram bot requires a https connection)
+- Youtuber's Channel ID
+- Google Gemini API key (or a compatible LLM/API endpoint).
+- Telegram API credentials (bot token and your Telegram user ID) for notifications.
+
+***
+
 ## Workflow Steps
 
 - **RSS Node:** Polls your chosen YouTube channel every 30–60 minutes for new videos. Setting a polling interval of at least 30 minutes is recommended, as YouTube captions may not be immediately available after a video is posted.
@@ -19,7 +30,7 @@ This n8n workflow automatically pulls the latest videos from your favorite YouTu
 
 ## Setup Instructions
 
-1. **Install n8n**: Use Docker or your preferred method.
+1. **Install n8n**: Use Docker or your preferred method. If you're using Docker, install the ngrok extension and use the https:// web address as your n8n webhook.
 2. **Import Workflow**: Download the provided JSON file and import it via n8n’s workflow editor.
 3. **Configure Nodes**:
    - Set up your preferred YouTube channel RSS feed.
@@ -35,3 +46,19 @@ This n8n workflow automatically pulls the latest videos from your favorite YouTu
 - Captions may not be available immediately after a video is uploaded; poll at reasonable intervals to ensure summaries include accurate captions.
 - Apify usage beyond 714 transcripts/month may incur additional costs.
 - Contributions and suggestions are welcome. Please open an issue or pull request for improvements.
+
+***
+
+## Resources
+
+- [Docker docs](https://docs.docker.com/)
+- [n8n docs](https://docs.n8n.io/)
+- [ngrok](https://ngrok.com)
+- [Google Gemini API docs](https://ai.google.dev/gemini-api/docs)
+- [Telegram API docs](https://core.telegram.org/bots/api)
+
+***
+
+## Support
+
+- Message me on [Reddit](https://reddit.com/u/shanebrown120). Happy to help!
