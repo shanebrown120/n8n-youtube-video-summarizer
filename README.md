@@ -34,8 +34,8 @@ This n8n workflow automatically pulls the latest videos from your favorite YouTu
 2. **Import Workflow**: Download the provided JSON file and import it via n8n’s workflow editor.
 3. **Configure Nodes**:
    - Set up your preferred YouTube channel RSS feed. Use https://www.youtube.com/feeds/videos.xml?channel_id=ENTER_CHANNEL_ID_HERE as the feed URL in the RSS node.
-   - Enter Apify credentials and subscribe to the 'Youtube Transcripts' actor.
-   - Provide your Telegram bot token and user ID.
+   - Enter Apify credentials and subscribe to the karamelo/youtube-transcripts actor.
+   - Enter your Telegram bot token and user ID.
 4. **Customize Schedule**: Adjust the polling interval to fit your needs (recommend 30–60 minutes).
 5. **Run & Receive Summaries**: Enable the workflow. You’ll receive a Telegram summary shortly after a new video is posted.
 
@@ -45,6 +45,7 @@ This n8n workflow automatically pulls the latest videos from your favorite YouTu
 
 - Captions may not be available immediately after a video is uploaded; poll at reasonable intervals to ensure summaries include accurate captions.
 - Apify usage beyond 714 transcripts/month may incur additional costs.
+- You can make a copy of the RSS node through the AI agent and paste it to create a separate workflow to link to your original Telegram node. This way, you can have multiple video summaries from different youtube accounts.
 - Contributions and suggestions are welcome. Please open an issue or pull request for improvements.
 
 ***
