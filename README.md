@@ -33,7 +33,7 @@ This n8n workflow automatically pulls the latest videos from your favorite YouTu
 1. **Install n8n**: Use Docker or your preferred method. If you're using Docker, install the ngrok extension and use the https:// web address as your n8n webhook.
 2. **Import Workflow**: Download the provided JSON file and import it via n8n’s workflow editor.
 3. **Configure Nodes**:
-   - Set up your preferred YouTube channel RSS feed.
+   - Set up your preferred YouTube channel RSS feed. Use https://www.youtube.com/feeds/videos.xml?channel_id=ENTER_CHANNEL_ID_HERE
    - Enter Apify credentials and subscribe to the 'Youtube Transcripts' actor.
    - Provide your Telegram bot token and user ID.
 4. **Customize Schedule**: Adjust the polling interval to fit your needs (recommend 30–60 minutes).
