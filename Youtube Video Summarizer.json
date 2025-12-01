@@ -1,0 +1,235 @@
+{
+  "name": "Youtube Video Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI assistant that analyzes transcripts.\n\nYour role is to:\n\t1.\tSummarize the following transcript ({{ $json.transcript }}) clearly and concisely (3-5 sentences).\n\t2.\tDetermine sentiment based on the overall tone:\n\t•\tFor general topics: rate as\n  \t•\t😊 Positive\n\t•\t😐 Neutral\n\t•\t😞 Negative\n\t•\tFor stock- or market-related videos: rate as\n\t•\t📈 Bullish\n\t•\t📉 Bearish\n\t3.\tOptional Actionable Takeaway: Provide a single sentence insight based on the transcript and its sentiment. For example, “This could indicate rising optimism around EV stocks.” Keep it relevant and concise.\n\t4.\tSend a Telegram message using the following format:\n\n📹 New Video Posted!\n👤 Creator: {{ $('RSS Feed Trigger').item.json.author }}\n🎬 Title: {{ $('RSS Feed Trigger').item.json.title }}\n🧠 Summary: [your summary here]\n📊 Sentiment: [emoji + sentiment rating]\n💡 Takeaway: [optional actionable insight]\n🔗 Watch here: {{ $('RSS Feed Trigger').item.json.link }}\n\nGuidelines:\n\t•\tKeep responses brief, professional, and insightful.\n\t•\tFocus on key points, sentiment, and actionable insight.\n\t•\tAvoid speculation, filler text, or unrelated commentary.\n\nNow is: {{ $now }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -752,
+        224
+      ],
+      "id": "a432783b-d342-47c5-bbe5-1512c514db8e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        448
+      ],
+      "id": "62283a9d-9c31-477b-a91b-9a6bad9734a6",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "chatId": "6878892740",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        224
+      ],
+      "id": "0479e245-782b-43f8-ad2c-9561c5336dc3",
+      "name": "Send a text message",
+      "webhookId": "1cd3fa7c-b9b2-456a-b5c1-dcacd5e611fd"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "youtube",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        448
+      ],
+      "id": "6b6209a4-9638-415c-a214-a46c01347a19",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Initialize an array to hold the output\nconst output = [];\n\nfor (let item of $input.all()) {\n  // Get the captions array\n  let captions = item.json.captions;\n\n  // Join the captions into a single string\n  let rawText = captions.join(\" \");\n\n  // Step 1: Decode HTML entities (e.g., &#39; to ')\n  let decodedText = rawText\n    .replace(/&#39;/g, \"'\") // Specifically handle apostrophe HTML entity\n    .replace(/&quot;/g, '\"') // Handle double quotes\n    .replace(/&amp;/g, \"&\") // Handle ampersands\n    .replace(/&#\\d+;/g, match => { // Handle any other numeric entities\n      const code = parseInt(match.slice(2, -1));\n      return String.fromCharCode(code);\n    });\n\n  // Step 2: Normalize special characters and clean up\n  let normalizedText = decodedText\n    .replace(/[\\u2018\\u2019]/g, \"'\") // Replace curly single quotes with straight '\n    .replace(/[\\u201C\\u201D]/g, '\"') // Replace curly double quotes with straight \"\n    .replace(/[\\u2026]/g, \"...\") // Replace ellipsis with three dots\n    .replace(/[^\\w\\s.,!?'-]/g, \" \") // Remove other non-standard characters, keep basic punctuation\n    .replace(/\\s+/g, \" \") // Collapse multiple spaces into one\n    .trim();\n\n  // Step 3: Split into potential sentences based on common sentence-ending punctuation\n  let sentences = normalizedText\n    .split(/([.!?])\\s+/)\n    .filter(Boolean); // Split on .!? followed by space, keep delimiters\n\n  // Step 4: Reconstruct the text with proper capitalization and spacing\n  let cleanedText = \"\";\n  for (let i = 0; i < sentences.length; i++) {\n    let part = sentences[i].trim();\n    if (part) {\n      // Capitalize the first letter of each sentence\n      if (part.match(/^[a-z]/i)) {\n        part = part.charAt(0).toUpperCase() + part.slice(1);\n      }\n      cleanedText += part;\n      // Add a space after sentence-ending punctuation, unless it's the last part\n      if (part.match(/[.!?]$/) && i < sentences.length - 1) {\n        cleanedText += \" \";\n      }\n    }\n  }\n\n  // Ensure the text ends with a period if it doesn’t already end with punctuation\n  if (!cleanedText.match(/[.!?]$/)) {\n    cleanedText += \".\";\n  }\n\n  // Create the response object with just videoId and transcript\n  const response = {\n    json: {\n      \"videoId\": item.json.videoId,\n      \"transcript\": cleanedText\n    }\n  };\n\n  // Push the response to the output array\n  output.push(response);\n}\n\n// Return the array of items\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        224
+      ],
+      "id": "ad5103ba-7fa8-40a5-bda7-6a4493a4cc22",
+      "name": "Cleans Up Captions"
+    },
+    {
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "dedupeValue": "={{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -1424,
+        224
+      ],
+      "id": "2c0c53ce-5854-411c-ac79-81c302e60d45",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "1s7eXiaukVuOr4Ueg",
+          "mode": "list",
+          "cachedResultName": "Youtube Transcripts (karamelo/youtube-transcripts)",
+          "cachedResultUrl": "https://console.apify.com/actors/1s7eXiaukVuOr4Ueg/input"
+        },
+        "customBody": "={\n    \"maxRetries\": 4,\n    \"proxyOptions\": {\n        \"useApifyProxy\": true\n    },\n    \"urls\": [\n        \"{{ $json.link }}\"\n    ]\n} ",
+        "memory": 8192
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        224
+      ],
+      "id": "114baacc-70ad-4fbd-8b0b-66a15281ef50",
+      "name": "Run an Actor and get dataset"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 30,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "feedUrl": ""
+      },
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        224
+      ],
+      "id": "e03320a8-76ce-4cfa-8960-f6ea9ca75636",
+      "name": "RSS Feed Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Cleans Up Captions": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Run an Actor and get dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run an Actor and get dataset": {
+      "main": [
+        [
+          {
+            "node": "Cleans Up Captions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Trigger": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "faf81e85-59e8-43fe-b1b9-e91e85841ec2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fcedd2d529c1015a1bd73cf28466848dd7415a8d6de12cbff0ed1934887866db"
+  },
+  "id": "DBf6dTey2Uihjizc",
+  "tags": []
+}
