@@ -51,7 +51,6 @@ This n8n workflow automatically pulls the latest videos from your favorite YouTu
 
 - Captions may not be available immediately after a video is uploaded; poll at reasonable intervals to ensure summaries include captions.
 - Apify usage beyond 714 transcripts/month may incur additional costs.
-- You can make a copy of the RSS Feed Trigger node through the AI agent node and paste it to create a separate workflow to link to your original Telegram node. This way, you can have multiple video summaries from different youtube accounts.
 - Contributions and suggestions are welcome. Please open an issue or pull request for improvements.
 
 ***
